@@ -54,4 +54,7 @@ clean:
 	rm -rf $(BUILD_DIR)/*
 
 dockerize-local:
-	docker build -t $(TAG) --target=dockerize .
+	docker buildx build --platform linux/amd64 -t eu.gcr.io/buntesdach/buntesdach-api:latest . 
+
+dockerize:
+	docker buildx build --platform linux/amd64 -t eu.gcr.io/buntesdach/buntesdach-api:latest . --push

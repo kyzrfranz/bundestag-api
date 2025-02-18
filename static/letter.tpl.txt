@@ -1,0 +1,29 @@
+Ich bin selbstständig in der IT und brauche dringend Ihre Unterstützung! Bitte setzen Sie sich in den Koalitionsverhandlungen für eine Reform des Statusfeststellungsverfahrens (SFV) ein, um endlich Rechtssicherheit für Auftraggeber und Auftragnehmer zu schaffen.
+
+Die aktuelle Rechtsunsicherheit führt zu massivem bürokratischem Aufwand und erschwert meine Arbeit als Freelancer erheblich. Unternehmen meiden zunehmend Einzelaufträge und greifen auf große Dienstleister zurück, was den Wettbewerb verzerrt. Viele Selbstständige werden in die Arbeitnehmerüberlassung gedrängt oder verlieren ihre Aufträge ganz. Gleichzeitig gefährden unverhältnismäßige Sanktionen kleinere Auftraggeber existenziell. Die digitale Transformation wird dadurch ausgebremst – Innovationen und IT-Projekte wandern ins Ausland ab. Das schwächt den Wirtschaftsstandort Deutschland erheblich.
+
+Ich fordere eine Reform des SFV, die eine verlässliche und faire Einordnung ermöglicht. Eine Schnellprüfung muss eingeführt werden, um freiwillige Absicherung und unternehmerisches Risiko angemessen zu berücksichtigen, anstatt Selbstständigkeit pauschal zu gefährden.
+
+Hintergrund:
+Seit 1999 wurde das Statusfeststellungsverfahren kontinuierlich verschärft: von der Abschaffung des Kriterienkatalogs (2003) über hohe Nachforderungen (2008) bis hin zur zunehmenden Einschränkung von IT-Freelancern durch Großkonzerne (2019). Die Reform von 2022 hat die Unsicherheit kaum verringert. Eine geplante Evaluierung 2025 kommt zu spät – die Wirtschaft braucht jetzt eine Lösung, am besten innerhalb der ersten 100 Tage!
+
+Bitte setzen Sie sich für eine schnelle und wirksame Reform ein.
+{{- if eq .Party "CDU" -}}
+{{- "\n" -}}
+Union Text
+{{- end}}
+{{- if eq .Party "BÜNDNIS 90/DIE GRÜNEN" -}}
+{{- "\n" -}}
+Grüne Text
+{{- end}}
+{{- if eq .Party "SPD" -}}
+{{- "\n" -}}
+SPD Text
+{{- end}}
+{{- if eq .Party "FDP" -}}
+{{- "\n" -}}
+FDP Text
+{{- end}}
+
+Mit freundlichen Grüßen
+{{.Sender}}

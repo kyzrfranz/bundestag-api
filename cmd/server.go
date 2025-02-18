@@ -12,7 +12,11 @@ import (
 	"os"
 )
 
+var logger *slog.Logger
+
 func main() {
+
+	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
 
 	dataUrl := mustGetUrl("https://www.bundestag.de/xml/v2/mdb/index.xml") // TODO config
 	politicianReader := data.NewCatalogReader[v1.PersonCatalog, v1.PersonListEntry](&upstream.XMLFetcher{Url: dataUrl})
@@ -20,7 +24,7 @@ func main() {
 	committeeUrl := mustGetUrl("https://www.bundestag.de/xml/v2/ausschuesse/index.xml") // TODO config
 	committeeReader := data.NewCatalogReader[v1.CommitteeCatalog, v1.CommitteeListEntry](&upstream.XMLFetcher{Url: committeeUrl})
 
-	apiServer := http.NewApiServer(8080)
+	apiServer := http.NewApiServer(8080, logger)
 
 	apiServer.Use(http.MiddlewareRecovery)
 	apiServer.Use(http.MiddlewareCORS)
@@ -37,11 +41,17 @@ func main() {
 	apiServer.AddHandler("/committees/{id}", committeeCatalogueHandler.Get)
 	apiServer.AddHandler("/committees/{id}/detail", committeeDetailHandler.Get)
 
+	//proxy for zipcode search
+	apiServer.AddHandler("/constituencies/{zipcode}", rest.Find)
+
+	letterHandler := rest.NewLetterHandler(resources.NewDetailRepo[v1.Politician](&politicianReader))
+	apiServer.AddHandler("/letter", letterHandler.Generate)
+
 	apiServer.ListenAndServe()
 }
 
 func bail(stage string, err error) {
-	slog.Error("server bailing out", slog.String("stage", stage), "error", err)
+	logger.Error("server bailing out", slog.String("stage", stage), "error", err)
 	os.Exit(1)
 }
 

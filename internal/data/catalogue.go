@@ -26,13 +26,19 @@ func NewCatalogReader[C ItemsGetter[E], E resources.Entry](fetcher CatalogFetche
 
 func (r *CatalogReader[C, E]) GetEntry(id string) (*resources.Entry, error) {
 	var e resources.Entry
-	raw, _ := r.GetCatalogueEntry(id)
+	raw, err := r.GetCatalogueEntry(id)
+	if err != nil {
+		return nil, err
+	}
 	e = *raw
-	return &e, nil
+	return &e, err
 }
 
 func (r *CatalogReader[C, E]) GetCatalog() ([]E, error) {
-	c, _ := r.readCatalog()
+	c, err := r.readCatalog()
+	if err != nil {
+		return nil, err
+	}
 	return c.GetItems(), nil
 }
 

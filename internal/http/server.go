@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 )
@@ -19,9 +18,10 @@ type ApiServer struct {
 	server     *http.Server
 	mux        *http.ServeMux
 	middleware []Middleware
+	logger     *slog.Logger
 }
 
-func NewApiServer(port int) *ApiServer {
+func NewApiServer(port int, logger *slog.Logger) *ApiServer {
 	mux := http.NewServeMux()
 	return &ApiServer{
 		mux:        mux,
@@ -30,6 +30,7 @@ func NewApiServer(port int) *ApiServer {
 			Addr:    fmt.Sprintf(":%d", port),
 			Handler: mux,
 		},
+		logger: logger,
 	}
 }
 
@@ -60,10 +61,6 @@ func (a *ApiServer) AddStaticHandler(urlPath string, dirPath string) {
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-		// Check if the request is for a .wasm file
-		if strings.HasSuffix(r.URL.Path, ".wasm") {
-			w.Header().Set("Content-Type", "application/wasm")
-		}
 		fileServer.ServeHTTP(w, r)
 	})))
 }
@@ -76,16 +73,16 @@ func (a *ApiServer) ListenAndServe() {
 
 	// Run the server in a goroutine
 	go func() {
-		slog.Log(context.Background(), slog.LevelInfo, "Server is running", "addr", a.server.Addr)
+		a.logger.Log(context.Background(), slog.LevelInfo, "Server is running", "addr", a.server.Addr)
 		if err := a.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			slog.Log(context.Background(), slog.LevelError, "Could not listen", "addr", a.server.Addr)
+			a.logger.Log(context.Background(), slog.LevelError, "Could not listen", "addr", a.server.Addr)
 			os.Exit(1)
 		}
 	}()
 
 	// Block until we receive a signal
 	<-stop
-	slog.Log(context.Background(), slog.LevelInfo, "Shutting down server...")
+	a.logger.Log(context.Background(), slog.LevelInfo, "Shutting down server...")
 
 	// Create a deadline to wait for the server to shut down gracefully
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -94,9 +91,9 @@ func (a *ApiServer) ListenAndServe() {
 
 	// Attempt to gracefully shut down the server
 	if err := a.server.Shutdown(ctx); err != nil {
-		slog.Log(ctx, slog.LevelError, "server forced to shutdown")
+		a.logger.Log(ctx, slog.LevelError, "server forced to shutdown")
 		os.Exit(1)
 	}
 
-	slog.Log(ctx, slog.LevelInfo, "Server gracefully stopped")
+	a.logger.Log(ctx, slog.LevelInfo, "Server gracefully stopped")
 }

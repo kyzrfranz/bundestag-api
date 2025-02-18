@@ -8,8 +8,6 @@ import (
 	"net/http"
 )
 
-const SelfLinkRel = "self"
-
 type Link struct {
 	Link string `json:"link"`
 	Rel  string `json:"rel"`

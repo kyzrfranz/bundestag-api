@@ -41,7 +41,7 @@ func (p detailRepo[T]) Get(ctx context.Context, id string) (*T, error) {
 	}
 
 	dtg = *entry
-	data, err := myhttp.FetchUrl(dtg.GetDetailUrl())
+	data, err := myhttp.FetchCachedUrl(dtg.GetDetailUrl(), NewFileCache("bio.json"))
 
 	var detailType T
 	if err = xml.Unmarshal(data, &detailType); err != nil {

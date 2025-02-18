@@ -2,6 +2,7 @@ package resources
 
 import (
 	"context"
+	"fmt"
 )
 
 type catalogueRepo[E any] struct {
@@ -30,6 +31,7 @@ func NewCatalogueRepo[E any](getter CatalogueDataGetter[E]) Repository[E] {
 func (s catalogueRepo[E]) List(ctx context.Context) []E {
 	catalog, err := s.getter.GetCatalog()
 	if err != nil {
+		fmt.Printf("failed to get catalogue: %v\n", err)
 		return nil
 	}
 	return catalog

@@ -10,5 +10,6 @@ RUN make build-linux-amd64
 FROM debian:bookworm-slim AS dockerize
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /app/build/buntesdach-api-amd64-linux /buntesdach-api
+COPY --from=build /app/static /static
 EXPOSE 8080
 ENTRYPOINT ["/buntesdach-api"]

@@ -17,7 +17,6 @@ type PoliticiansFetcher interface {
 }
 
 func NewPoliticianCatalogReader(fetcher PoliticiansFetcher) (*PoliticianCatalogReader, error) {
-
 	return &PoliticianCatalogReader{
 		fetcher: fetcher,
 	}, nil
