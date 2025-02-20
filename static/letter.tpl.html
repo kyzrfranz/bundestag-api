@@ -88,15 +88,15 @@
 
 <div class="address-block">
     <div>
-        {{ .SenderName }}<br>
-        {{ .SenderAddress.Street }} {{ .SenderAddress.Number }}<br>
-        {{ .SenderAddress.ZipCode }} {{ .SenderAddress.City }}
-    </div>
-    <div class="right">
         MdB {{ .RecipientName }} <br>
         {{ .RecipientAddress.Label }}<br>
         {{ .RecipientAddress.Street }} {{ .RecipientAddress.Number }}<br>
         {{ .RecipientAddress.ZipCode }} {{ .RecipientAddress.City }}
+    </div>
+    <div class="right">
+        {{ .SenderName }}<br>
+        {{ .SenderAddress.Street }} {{ .SenderAddress.Number }}<br>
+        {{ .SenderAddress.ZipCode }} {{ .SenderAddress.City }}
     </div>
 </div>
 
