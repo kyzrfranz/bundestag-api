@@ -54,7 +54,8 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 	var letterRequest LetterRequest
 	if err := json.NewDecoder(req.Body).Decode(&letterRequest); err != nil {
 		h.logger.Error("Failed to marshal", "error", err)
-		w.WriteHeader(http.StatusBadRequest)
+		http.Error(w, "Failed to marshal request", http.StatusBadRequest)
+		return
 	}
 
 	actionParam := req.URL.Query().Get("action")
@@ -63,20 +64,23 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 		if err != nil {
 			h.logger.Error("Failed to queue", "error", err)
 			http.Error(w, "Failed to queue", http.StatusInternalServerError)
+			return
 		}
 		h.logger.Info("Queued", "id", id)
 	} else {
 		buffer, err := h.prepareDownload(letterRequest)
+
 		if err != nil {
 			h.logger.Error("Failed to download", "error", err)
 			http.Error(w, "Failed to download", http.StatusInternalServerError)
+			return
 		}
-
-		w.Header().Set("Content-Disposition", "attachment; filename="+zipName+".zip")
+		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", zipName))
 		w.Header().Set("Content-Type", "application/zip")
 		zipBytes := buffer.Bytes()
 		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(zipBytes)))
 
+		w.WriteHeader(http.StatusOK)
 		if _, err := w.Write(zipBytes); err != nil {
 			http.Error(w, "Failed to write ZIP to response", http.StatusInternalServerError)
 		}
