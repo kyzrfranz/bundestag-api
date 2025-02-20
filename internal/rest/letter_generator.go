@@ -54,7 +54,7 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 	var letterRequest LetterRequest
 	if err := json.NewDecoder(req.Body).Decode(&letterRequest); err != nil {
 		h.logger.Error("Failed to marshal", "error", err)
-		http.Error(w, "Failed to marshal request", http.StatusBadRequest)
+		http.Error(w, "request object is invalid ", http.StatusBadRequest)
 		return
 	}
 
