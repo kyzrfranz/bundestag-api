@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 )
 
 const (
@@ -29,6 +30,7 @@ type LetterRequest struct {
 		Zip    int    `json:"zip"`
 		City   string `json:"city"`
 	} `json:"address"`
+	CreationDate time.Time `json:"creation_date,omitempty"`
 }
 
 type LetterHandler struct {
@@ -60,6 +62,7 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 
 	actionParam := req.URL.Query().Get("action")
 	if actionParam == "queue" {
+		letterRequest.CreationDate = time.Now()
 		id, err := h.collection.InsertOne(context.Background(), letterRequest)
 		if err != nil {
 			h.logger.Error("Failed to queue", "error", err)
