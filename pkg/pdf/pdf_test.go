@@ -9,12 +9,23 @@ import (
 func TestGenerate(t *testing.T) {
 
 	data := LetterData{
-		SenderName:       "Christian Olearius",
-		SenderAddress:    "Mustermannstraße 123\n12345 Musterstadt",
-		RecipientName:    "Olaf Schulz",
-		RecipientAddress: "Deutscher Bundestag\nPlatz der Republik 1\n11011 Berlin",
-		Salutation:       "Sehr geehrter Herr Schulz,",
-		Party:            "SPD",
+		SenderName: "Christian Olearius",
+		SenderAddress: Address{
+			Street:  "Musterstraße 123",
+			ZipCode: 12345,
+			City:    "Musterstadt",
+			Number:  1,
+		},
+		RecipientName: "Olaf Schulz",
+		RecipientAddress: Address{
+			Street:  "Platz der Republik",
+			Label:   "Deutscher Bundestag",
+			ZipCode: 11011,
+			City:    "Berlin",
+			Number:  1,
+		},
+		Salutation: "Sehr geehrter Herr Schulz,",
+		Party:      "SPD",
 	}
 
 	pdf, err := Generate(data, "../../static")

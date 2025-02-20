@@ -100,12 +100,23 @@ func (h *LetterHandler) prepareDownload(letterRequest LetterRequest) (*bytes.Buf
 			return nil, err
 		}
 		ldata := pdf.LetterData{
-			SenderName:       letterRequest.Address.Name,
-			SenderAddress:    fmt.Sprintf("%s %d\n%d %s", letterRequest.Address.Street, letterRequest.Address.Number, letterRequest.Address.Zip, letterRequest.Address.City),
-			RecipientName:    util.ShortSalutation(entry.Bio),
-			RecipientAddress: "Deutscher Bundestag\nPlatz der Republik 1\n11011 Berlin",
-			Salutation:       util.LongSalutation(entry.Bio),
-			Party:            entry.Bio.Party,
+			SenderName: letterRequest.Address.Name,
+			SenderAddress: pdf.Address{
+				Street:  letterRequest.Address.Street,
+				Number:  letterRequest.Address.Number,
+				ZipCode: letterRequest.Address.Zip,
+				City:    letterRequest.Address.City,
+			},
+			RecipientName: util.ShortSalutation(entry.Bio),
+			RecipientAddress: pdf.Address{
+				Street:  "Platz der Republik",
+				Label:   "Deutscher Bundestag",
+				ZipCode: 11011,
+				City:    "Berlin",
+				Number:  1,
+			},
+			Salutation: util.LongSalutation(entry.Bio),
+			Party:      entry.Bio.Party,
 		}
 
 		pdfBytes, err := pdf.Generate(ldata, "./static")

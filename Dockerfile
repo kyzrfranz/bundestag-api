@@ -8,6 +8,8 @@ COPY . .
 RUN make build-linux-amd64
 
 FROM debian:bookworm-slim AS dockerize
+RUN apt-get update && apt-get install -y wkhtmltopdf xfonts-75dpi xfonts-base
+
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /app/build/buntesdach-api-amd64-linux /buntesdach-api
 COPY --from=build /app/static /static
