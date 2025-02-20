@@ -3,6 +3,7 @@ package main
 import (
 	v1 "github.com/kyzrfranz/buntesdach/api/v1"
 	"github.com/kyzrfranz/buntesdach/internal/data"
+	"github.com/kyzrfranz/buntesdach/internal/db"
 	"github.com/kyzrfranz/buntesdach/internal/http"
 	"github.com/kyzrfranz/buntesdach/internal/rest"
 	"github.com/kyzrfranz/buntesdach/internal/upstream"
@@ -12,11 +13,23 @@ import (
 	"os"
 )
 
-var logger *slog.Logger
+var (
+	logger          *slog.Logger
+	mongoUri        string
+	mongoCollection string
+)
 
 func main() {
 
 	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
+
+	mongoUri = stringOrEnv("MONGO_URI", "")
+	mongoCollection = stringOrEnv("MONGO_COLLECTION", "test")
+	cli, err := db.NewV1MongoClient(db.WithUri(mongoUri))
+	if err != nil {
+		logger.Error("failed to connect to mongo", "error", err)
+		os.Exit(1)
+	}
 
 	dataUrl := mustGetUrl("https://www.bundestag.de/xml/v2/mdb/index.xml") // TODO config
 	politicianReader := data.NewCatalogReader[v1.PersonCatalog, v1.PersonListEntry](&upstream.XMLFetcher{Url: dataUrl})
@@ -44,8 +57,9 @@ func main() {
 	//proxy for zipcode search
 	apiServer.AddHandler("/constituencies/{zipcode}", rest.Find)
 
-	letterHandler := rest.NewLetterHandler(resources.NewDetailRepo[v1.Politician](&politicianReader))
-	apiServer.AddHandler("/letter", letterHandler.Generate)
+	collection := cli.Database("buntesdach").Collection(mongoCollection)
+	letterHandler := rest.NewLetterHandler(resources.NewDetailRepo[v1.Politician](&politicianReader), collection)
+	apiServer.AddHandler("/letters", letterHandler.Generate)
 
 	apiServer.ListenAndServe()
 }
@@ -62,4 +76,13 @@ func mustGetUrl(s string) *url.URL {
 	}
 
 	return parsedUrl
+}
+
+func stringOrEnv(key string, defaultVal string) (s string) {
+	s = os.Getenv(key)
+	if s != "" {
+		defaultVal = s
+	}
+
+	return defaultVal
 }

@@ -40,4 +40,5 @@ jobs:
             --image eu.gcr.io/buntesdach/buntesdach-api:latest \
             --region europe-west1 \
             --platform managed \
-            --allow-unauthenticated
+            --allow-unauthenticated \
+            --set-env-vars MONGO_URI=${{ secrets.MONGO_URI }}
