@@ -45,4 +45,4 @@ jobs:
             --allow-unauthenticated \
             --memory=8Gi \
             --cpu=4 \
-            --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }} \
+            --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }}
