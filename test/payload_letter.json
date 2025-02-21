@@ -1,0 +1,10 @@
+{
+  "ids": ["2531", "2413", "2341", "2213"],
+  "address": {
+    "name": "Christian Olearius",
+    "street": "Musterstraße",
+    "number": 1,
+    "zip": 12345,
+    "city": "Musterstadt"
+  }
+}
