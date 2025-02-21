@@ -44,7 +44,6 @@ jobs:
             --platform=managed \
             --allow-unauthenticated \
             --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }} \
-            --min-instances=1 \
             --max-instances=4 \
             --memory=8Gi \
             --cpu=4 
