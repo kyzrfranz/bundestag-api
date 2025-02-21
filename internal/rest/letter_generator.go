@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -92,55 +93,90 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h *LetterHandler) prepareDownload(letterRequest LetterRequest) (*bytes.Buffer, error) {
-	var zipBuffer bytes.Buffer
-	zipWriter := zip.NewWriter(&zipBuffer)
-
-	for _, id := range letterRequest.Ids {
-		entry, err := h.repo.Get(context.Background(), id)
-		h.logger.Info("processing entry", "mdb", entry)
-
-		if err != nil {
-			return nil, err
-		}
-		ldata := pdf.LetterData{
-			SenderName: letterRequest.Address.Name,
-			SenderAddress: pdf.Address{
-				Street:  letterRequest.Address.Street,
-				Number:  letterRequest.Address.Number,
-				ZipCode: letterRequest.Address.Zip,
-				City:    letterRequest.Address.City,
-			},
-			RecipientName: util.ShortSalutation(entry.Bio),
-			RecipientAddress: pdf.Address{
-				Street:  "Platz der Republik",
-				Label:   "Deutscher Bundestag",
-				ZipCode: 11011,
-				City:    "Berlin",
-				Number:  1,
-			},
-			Salutation: util.LongSalutation(entry.Bio),
-			Party:      entry.Bio.Party,
-		}
-
-		pdfBytes, err := pdf.Generate(ldata, "./static")
-		if err != nil {
-			return nil, fmt.Errorf("failed to generate PDF for %s %s", entry.Bio.FirstName, entry.Bio.LastName)
-		}
-
-		zipFileName := fmt.Sprintf("%s.pdf", fmt.Sprintf("%s_%s", entry.Bio.FirstName, entry.Bio.LastName))
-		fileInZip, err := zipWriter.Create(zipFileName)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create file in zip: %s", zipFileName)
-		}
-
-		if _, err := fileInZip.Write(pdfBytes); err != nil {
-			return nil, fmt.Errorf("failed to write PDF to zip: %s", zipFileName)
-		}
+	// Define a result type for concurrently generated PDFs.
+	type pdfResult struct {
+		zipFileName string
+		pdfBytes    []byte
+		err         error
 	}
 
-	// Close the ZIP writer to finalize the archive
+	results := make(chan pdfResult, len(letterRequest.Ids))
+	var wg sync.WaitGroup
+
+	// Launch one goroutine per ID.
+	for _, id := range letterRequest.Ids {
+		wg.Add(1)
+		go func(id string) {
+			defer wg.Done()
+			// Retrieve entry.
+			entry, err := h.repo.Get(context.Background(), id)
+			if err != nil {
+				results <- pdfResult{err: fmt.Errorf("failed to get entry %s: %w", id, err)}
+				return
+			}
+			h.logger.Info("processing entry", "mdb", entry)
+
+			// Build PDF data.
+			ldata := pdf.LetterData{
+				SenderName: letterRequest.Address.Name,
+				SenderAddress: pdf.Address{
+					Street:  letterRequest.Address.Street,
+					Number:  letterRequest.Address.Number,
+					ZipCode: letterRequest.Address.Zip,
+					City:    letterRequest.Address.City,
+				},
+				RecipientName: util.ShortSalutation(entry.Bio),
+				RecipientAddress: pdf.Address{
+					Street:  "Platz der Republik",
+					Label:   "Deutscher Bundestag",
+					ZipCode: 11011,
+					City:    "Berlin",
+					Number:  1,
+				},
+				Salutation: util.LongSalutation(entry.Bio),
+				Party:      entry.Bio.Party,
+			}
+
+			// Generate PDF bytes.
+			pdfBytes, err := pdf.Generate(ldata, "./static")
+			if err != nil {
+				results <- pdfResult{err: fmt.Errorf("failed to generate PDF for %s %s: %w", entry.Bio.FirstName, entry.Bio.LastName, err)}
+				return
+			}
+
+			zipFileName := fmt.Sprintf("%s_%s.pdf", entry.Bio.FirstName, entry.Bio.LastName)
+			results <- pdfResult{zipFileName: zipFileName, pdfBytes: pdfBytes}
+		}(id)
+	}
+
+	// Wait for all goroutines to finish and close the channel.
+	wg.Wait()
+	close(results)
+
+	// Check for errors and collect successful results.
+	var pdfResults []pdfResult
+	for res := range results {
+		if res.err != nil {
+			// You may choose to return immediately or collect multiple errors.
+			return nil, res.err
+		}
+		pdfResults = append(pdfResults, res)
+	}
+
+	// Create the ZIP archive sequentially.
+	var zipBuffer bytes.Buffer
+	zipWriter := zip.NewWriter(&zipBuffer)
+	for _, res := range pdfResults {
+		fileInZip, err := zipWriter.Create(res.zipFileName)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create file in zip: %s: %w", res.zipFileName, err)
+		}
+		if _, err := fileInZip.Write(res.pdfBytes); err != nil {
+			return nil, fmt.Errorf("failed to write PDF to zip: %s: %w", res.zipFileName, err)
+		}
+	}
 	if err := zipWriter.Close(); err != nil {
-		return nil, fmt.Errorf("failed to close ZIP writer")
+		return nil, fmt.Errorf("failed to close ZIP writer: %w", err)
 	}
 
 	return &zipBuffer, nil
