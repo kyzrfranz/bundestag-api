@@ -37,12 +37,12 @@ jobs:
       - name: Deploy to Cloud Run
         run: |
           gcloud run deploy buntesdach-api \
-            --image eu.gcr.io/buntesdach/buntesdach-api:latest \
-            --region europe-west1 \
-            --platform managed \
+            --image=eu.gcr.io/buntesdach/buntesdach-api:latest \
+            --region=europe-west1 \
+            --platform=managed \
             --allow-unauthenticated \
-            --set-env-vars MONGO_URI=${{ secrets.MONGO_URI }} \
-            --min-instances 1 \
-            --max-instances 4 \
-            --memory 8GiB \
-            --cpu 4 
+            --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }} \
+            --min-instances=1 \
+            --max-instances=4 \
+            --memory=8Gi \
+            --cpu=4 
