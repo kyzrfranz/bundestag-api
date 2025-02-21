@@ -48,4 +48,5 @@ jobs:
             --concurrency=10 \
             --memory=8Gi \
             --cpu=4 \
+            --timeout=90 \
             --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }}
