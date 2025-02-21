@@ -43,7 +43,6 @@ jobs:
             --region=europe-west1 \
             --platform=managed \
             --allow-unauthenticated \
-            --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }} \
-            --min=2 \
             --memory=8Gi \
-            --cpu=4 
+            --cpu=4 \
+            --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }} \
