@@ -11,6 +11,7 @@ import (
 	"github.com/kyzrfranz/buntesdach/pkg/pdf"
 	"github.com/kyzrfranz/buntesdach/pkg/resources"
 	"go.mongodb.org/mongo-driver/mongo"
+	"html/template"
 	"log/slog"
 	"net/http"
 	"os"
@@ -71,50 +72,67 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 			return
 		}
 		h.logger.Info("Queued", "id", id)
-	} else {
-		buffer, err := h.prepareDownload(letterRequest)
-
-		if err != nil {
-			h.logger.Error("Failed to download", "error", err)
-			http.Error(w, "Failed to download", http.StatusInternalServerError)
-			return
-		}
-		w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", zipName))
-		w.Header().Set("Content-Type", "application/zip")
-		zipBytes := buffer.Bytes()
-		w.Header().Set("Content-Length", fmt.Sprintf("%d", len(zipBytes)))
-
 		w.WriteHeader(http.StatusOK)
-		if _, err := w.Write(zipBytes); err != nil {
-			http.Error(w, "Failed to write ZIP to response", http.StatusInternalServerError)
-		}
-	}
 
+		return
+	}
+	//} else {
+	//	buffer, err := h.prepareDownload(letterRequest)
+	//
+	//	if err != nil {
+	//		h.logger.Error("Failed to download", "error", err)
+	//		http.Error(w, "Failed to download", http.StatusInternalServerError)
+	//		return
+	//	}
+	//	w.Header().Set("Content-Disposition", fmt.Sprintf("attachment; filename=\"%s.zip\"", zipName))
+	//	w.Header().Set("Content-Type", "application/zip")
+	//	zipBytes := buffer.Bytes()
+	//	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(zipBytes)))
+	//
+	//	w.WriteHeader(http.StatusOK)
+	//	if _, err := w.Write(zipBytes); err != nil {
+	//		http.Error(w, "Failed to write ZIP to response", http.StatusInternalServerError)
+	//	}
+	//}
+
+	http.Error(w, "Invalid action", http.StatusBadRequest)
 }
 
 func (h *LetterHandler) prepareDownload(letterRequest LetterRequest) (*bytes.Buffer, error) {
-	// Define a result type for concurrently generated PDFs.
+	// Define the task and result types.
+	type pdfTask struct {
+		id string
+	}
 	type pdfResult struct {
 		zipFileName string
 		pdfBytes    []byte
 		err         error
 	}
 
+	tpl, err := template.ParseFiles(fmt.Sprintf("%s/letter.tpl.html", "./static"))
+	if err != nil {
+		return nil, err
+	}
+
+	// Channels to distribute tasks and collect results.
+	tasks := make(chan pdfTask, len(letterRequest.Ids))
 	results := make(chan pdfResult, len(letterRequest.Ids))
+
+	// Set a limit on concurrent PDF generations.
+	const numWorkers = 5
 	var wg sync.WaitGroup
 
-	// Launch one goroutine per ID.
-	for _, id := range letterRequest.Ids {
-		wg.Add(1)
-		go func(id string) {
-			defer wg.Done()
-			// Retrieve entry.
-			entry, err := h.repo.Get(context.Background(), id)
+	// Worker function to process tasks.
+	worker := func() {
+		defer wg.Done()
+		for task := range tasks {
+			// Retrieve entry for the given ID.
+			entry, err := h.repo.Get(context.Background(), task.id)
 			if err != nil {
-				results <- pdfResult{err: fmt.Errorf("failed to get entry %s: %w", id, err)}
-				return
+				results <- pdfResult{err: fmt.Errorf("failed to get entry %s: %w", task.id, err)}
+				continue
 			}
-			h.logger.Info("processing entry", "mdb", entry)
+			h.logger.Info("processing entry", "mdb", entry.Bio)
 
 			// Build PDF data.
 			ldata := pdf.LetterData{
@@ -137,33 +155,46 @@ func (h *LetterHandler) prepareDownload(letterRequest LetterRequest) (*bytes.Buf
 				Party:      entry.Bio.Party,
 			}
 
-			// Generate PDF bytes.
-			pdfBytes, err := pdf.Generate(ldata, "./static")
+			// Generate PDF bytes (tpl is assumed to be already loaded and passed in).
+			pdfBytes, err := pdf.Generate(ldata, tpl)
 			if err != nil {
 				results <- pdfResult{err: fmt.Errorf("failed to generate PDF for %s %s: %w", entry.Bio.FirstName, entry.Bio.LastName, err)}
-				return
+				continue
 			}
 
 			zipFileName := fmt.Sprintf("%s_%s.pdf", entry.Bio.FirstName, entry.Bio.LastName)
 			results <- pdfResult{zipFileName: zipFileName, pdfBytes: pdfBytes}
-		}(id)
+		}
 	}
 
-	// Wait for all goroutines to finish and close the channel.
-	wg.Wait()
-	close(results)
+	// Start a fixed number of workers.
+	wg.Add(numWorkers)
+	for i := 0; i < numWorkers; i++ {
+		go worker()
+	}
 
-	// Check for errors and collect successful results.
+	// Enqueue tasks.
+	for _, id := range letterRequest.Ids {
+		tasks <- pdfTask{id: id}
+	}
+	close(tasks)
+
+	// Wait for all workers to finish then close results channel.
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Collect results.
 	var pdfResults []pdfResult
 	for res := range results {
 		if res.err != nil {
-			// You may choose to return immediately or collect multiple errors.
 			return nil, res.err
 		}
 		pdfResults = append(pdfResults, res)
 	}
 
-	// Create the ZIP archive sequentially.
+	// Create ZIP archive containing all generated PDFs.
 	var zipBuffer bytes.Buffer
 	zipWriter := zip.NewWriter(&zipBuffer)
 	for _, res := range pdfResults {
