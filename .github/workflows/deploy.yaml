@@ -43,7 +43,9 @@ jobs:
             --region=europe-west1 \
             --platform=managed \
             --allow-unauthenticated \
-            --min-instances=0 \
+            --min-instances=1 \
             --max-instances=2 \
             --concurrency=2 \
+            --memory=128MiB \
+            --cpu=1 \
             --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }}
