@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/http2/h2c"
 	"log/slog"
 	"net/http"
 	"os"
@@ -28,7 +30,7 @@ func NewApiServer(port int, logger *slog.Logger) *ApiServer {
 		middleware: []Middleware{},
 		server: &http.Server{
 			Addr:    fmt.Sprintf(":%d", port),
-			Handler: mux,
+			Handler: h2c.NewHandler(mux, &http2.Server{}),
 		},
 		logger: logger,
 	}
