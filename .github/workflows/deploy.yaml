@@ -40,13 +40,13 @@ jobs:
         run: |
           gcloud run deploy buntesdach-api \
             --image=eu.gcr.io/buntesdach/buntesdach-api:latest \
+            --use-http2 \
             --region=europe-west1 \
             --platform=managed \
             --allow-unauthenticated \
             --min-instances=1 \
             --max-instances=2 \
             --concurrency=2 \
-            --memory=128MiB \
+            --memory=128Mi \
             --cpu=1 \
-            --use-http2 \ 
             --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }}
