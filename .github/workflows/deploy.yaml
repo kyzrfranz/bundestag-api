@@ -49,5 +49,5 @@ jobs:
             --concurrency=2 \
             --memory=128Mi \
             --cpu=1 \
-            --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }}
+            --set-env-vars=MONGO_URI=${{ secrets.MONGO_URI }} \n
             --set-env-vars=MONGO_COLLECTION="live-bucket-1"
