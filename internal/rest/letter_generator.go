@@ -71,7 +71,7 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Failed to queue", http.StatusInternalServerError)
 			return
 		}
-		h.logger.Info("Queued", "id", id)
+		h.logger.Info("Queued", "id", id, "collection", h.collection.Name())
 		w.WriteHeader(http.StatusOK)
 
 		return
