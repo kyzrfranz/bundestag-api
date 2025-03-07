@@ -51,4 +51,4 @@ jobs:
             --concurrency=2 \
             --memory=128Mi \
             --cpu=1 \
-            --set-env-vars=MONGO_URI=${MONGO_URI},MONGO_COLLECTION="live-bucket-1,AUTH_KEY=${AUTH_KEY}"
+            --set-env-vars=MONGO_URI=${MONGO_URI},MONGO_COLLECTION="live-bucket-1",AUTH_KEY=${AUTH_KEY}
