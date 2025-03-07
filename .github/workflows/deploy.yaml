@@ -39,6 +39,7 @@ jobs:
       - name: Deploy to Cloud Run
         env:
           MONGO_URI: ${{ secrets.MONGO_URI }}
+          AUTH_KEY: ${{ secrets.AUTH_KEY }}
         run: |
           gcloud run deploy buntesdach-api \
             --image=eu.gcr.io/buntesdach/buntesdach-api:latest \
