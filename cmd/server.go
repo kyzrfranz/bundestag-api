@@ -17,6 +17,7 @@ var (
 	logger          *slog.Logger
 	mongoUri        string
 	mongoCollection string
+	authKey         string
 )
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 
 	mongoUri = stringOrEnv("MONGO_URI", "")
 	mongoCollection = stringOrEnv("MONGO_COLLECTION", "test")
+	authKey = stringOrEnv("AUTH_KEY", "")
 	cli, err := db.NewV1MongoClient(db.WithUri(mongoUri))
 	if err != nil {
 		logger.Error("failed to connect to mongo", "error", err)
@@ -58,8 +60,9 @@ func main() {
 	apiServer.AddHandler("/constituencies/{zipcode}", rest.Find)
 
 	collection := cli.Database("buntesdach").Collection(mongoCollection)
-	letterHandler := rest.NewLetterHandler(resources.NewDetailRepo[v1.Politician](&politicianReader), collection)
-	apiServer.AddHandler("/letters", letterHandler.Generate)
+	letterHandler := rest.NewLetterHandler(resources.NewDetailRepo[v1.Politician](&politicianReader), collection, authKey)
+	apiServer.AddHandler("/letters", letterHandler.Handle)
+	//apiServer.AddHandler("/letters", letterHandler.Delete)
 
 	apiServer.ListenAndServe()
 }
