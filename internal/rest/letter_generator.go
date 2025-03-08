@@ -6,6 +6,7 @@ import (
 	v1 "github.com/kyzrfranz/buntesdach/api/v1"
 	"github.com/kyzrfranz/buntesdach/pkg/resources"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log/slog"
@@ -70,6 +71,7 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 	actionParam := req.URL.Query().Get("action")
 	if actionParam == "queue" {
 		letterRequest.CreationDate = time.Now()
+		letterRequest.Id = primitive.NewObjectID().Hex()
 		id, err := h.collection.InsertOne(context.Background(), letterRequest)
 		if err != nil {
 			h.logger.Error("Failed to queue", "error", err)
