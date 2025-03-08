@@ -20,7 +20,7 @@ type LetterRequest struct {
 		Name   string `json:"name"`
 		Street string `json:"street"`
 		Number int    `json:"number"`
-		Zip    int    `json:"zip"`
+		Zip    string `json:"zip"`
 		City   string `json:"city"`
 	} `json:"address"`
 	CreationDate time.Time `json:"creation_date,omitempty"`
