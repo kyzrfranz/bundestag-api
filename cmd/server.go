@@ -61,7 +61,9 @@ func main() {
 
 	collection := cli.Database("buntesdach").Collection(mongoCollection)
 	letterHandler := rest.NewLetterHandler(resources.NewDetailRepo[v1.Politician](&politicianReader), collection, authKey)
+	apiServer.AddHandler("/letters/{id}", letterHandler.Handle)
 	apiServer.AddHandler("/letters", letterHandler.Handle)
+	apiServer.AddHandler("/letters/stats", letterHandler.Stats)
 	//apiServer.AddHandler("/letters", letterHandler.Delete)
 
 	apiServer.ListenAndServe()
