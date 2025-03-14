@@ -18,6 +18,7 @@ import (
 type LetterRequest struct {
 	Id      string   `json:"id,omitempty" bson:"_id"`
 	Ids     []string `json:"ids"`
+	MyMdbs  []string `json:"myMdbs, omitempty"`
 	Address struct {
 		Name   string `json:"name"`
 		Street string `json:"street"`
