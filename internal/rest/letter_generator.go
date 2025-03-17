@@ -268,7 +268,7 @@ func (h *LetterHandler) Stats(w http.ResponseWriter, req *http.Request) {
 		{{"$project", bson.D{
 			{"uniqueRequests", bson.D{{"$arrayElemAt", bson.A{"$uniqueSummary.uniqueRequests", 0}}}},
 			{"totalIds", bson.D{{"$arrayElemAt", bson.A{"$uniqueSummary.totalIds", 0}}}},
-			{"top10Ids", 1},
+			{"topIds", 1},
 			{"statusCounts", bson.D{{"$arrayElemAt", bson.A{"$statusCounts", 0}}}},
 		}}},
 	}
