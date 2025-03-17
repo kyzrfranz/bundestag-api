@@ -9,16 +9,24 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
+)
+
+var (
+	StatusQueued = "queued"
+	StatusSent   = "sent"
 )
 
 type LetterRequest struct {
 	Id      string   `json:"id,omitempty" bson:"_id"`
 	Ids     []string `json:"ids"`
-	MyMdbs  []string `json:"myMdbs, omitempty"`
+	MyMdbs  []string `json:"myMdbs,omitempty"`
+	Status  string   `json:"status,omitempty"`
 	Address struct {
 		Name   string `json:"name"`
 		Street string `json:"street"`
@@ -32,6 +40,14 @@ type LetterRequest struct {
 type Stats struct {
 	UniqueRequests int `bson:"uniqueRequests" json:"uniqueRequests"`
 	TotalIds       int `bson:"totalIds" json:"totalLetters"`
+	TopIds         []struct {
+		ID    string `bson:"_id" json:"id"`
+		Count int    `bson:"count" json:"count"`
+	} `bson:"topIds" json:"topIds"`
+	StatusCounts struct {
+		Queued int `bson:"queued" json:"queued"`
+		Sent   int `bson:"sent" json:"sent"`
+	} `bson:"statusCounts"`
 }
 
 type LetterHandler struct {
@@ -56,6 +72,8 @@ func (h *LetterHandler) Handle(w http.ResponseWriter, req *http.Request) {
 		h.Generate(w, req)
 	case http.MethodGet:
 		h.List(w, req)
+	case http.MethodPatch:
+		h.Patch(w, req)
 	case http.MethodDelete:
 		h.Delete(w, req)
 	default:
@@ -78,6 +96,7 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 
 	actionParam := req.URL.Query().Get("action")
 	if actionParam == "queue" {
+		letterRequest.Status = StatusQueued
 		letterRequest.CreationDate = time.Now()
 		letterRequest.Id = primitive.NewObjectID().Hex()
 		id, err := h.collection.InsertOne(context.Background(), letterRequest)
@@ -92,6 +111,49 @@ func (h *LetterHandler) Generate(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	http.Error(w, "Invalid action", http.StatusBadRequest)
+}
+
+func (h *LetterHandler) Patch(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPatch {
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		return
+	}
+
+	if req.Header.Get("Authorization") != "Bearer "+h.authKey {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	id := req.PathValue("id")
+	if id == "" {
+		http.Error(w, "Invalid id", http.StatusBadRequest)
+		return
+	}
+
+	var patchRequest map[string]interface{}
+	if err := json.NewDecoder(req.Body).Decode(&patchRequest); err != nil {
+		h.logger.Error("Failed to decode", "error", err)
+		http.Error(w, "Failed to decode", http.StatusInternalServerError)
+		return
+	}
+
+	update := bson.M{"$set": patchRequest}
+	res, err := h.collection.UpdateOne(context.Background(),
+		bson.M{"_id": id}, update)
+	if err != nil {
+		objectId, err := primitive.ObjectIDFromHex(id)
+		res, err = h.collection.UpdateOne(context.Background(),
+			bson.M{"_id": objectId}, update)
+		if err != nil {
+			h.logger.Error("Failed to update", "error", err)
+			http.Error(w, "Failed to update", http.StatusInternalServerError)
+			return
+		}
+	}
+	if res.MatchedCount == 0 {
+		http.Error(w, "Not found", http.StatusNotFound)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *LetterHandler) Delete(w http.ResponseWriter, req *http.Request) {
@@ -132,41 +194,92 @@ func (h *LetterHandler) Stats(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	top := req.URL.Query().Get("top")
+	topIds, err := strconv.Atoi(top)
+	if err != nil {
+		topIds = 10
+	}
+
 	pipeline := mongo.Pipeline{
-		// Stage 1: Add a field 'idsCount' equal to the size of the ids array.
-		{{"$addFields", bson.D{
-			{"idsCount", bson.D{{"$size", "$ids"}}},
-		}}},
-		// Stage 2: Group by the composite key (address and ids) to get unique letter requests.
-		{{"$group", bson.D{
-			{"_id", bson.D{
-				{"address", "$address"},
-				{"ids", "$ids"},
+		{{"$facet", bson.D{
+			// Facet for unique summary based on address & ids
+			{"uniqueSummary", bson.A{
+				bson.D{{"$addFields", bson.D{
+					{"idsCount", bson.D{{"$size", "$ids"}}},
+				}}},
+				bson.D{{"$group", bson.D{
+					{"_id", bson.D{
+						{"address", "$address"},
+						{"ids", "$ids"},
+					}},
+					{"requestIdsCount", bson.D{{"$first", "$idsCount"}}},
+				}}},
+				bson.D{{"$group", bson.D{
+					{"_id", nil},
+					{"uniqueRequests", bson.D{{"$sum", 1}}},
+					{"totalIds", bson.D{{"$sum", "$requestIdsCount"}}},
+				}}},
+				bson.D{{"$project", bson.D{
+					{"_id", 0},
+					{"uniqueRequests", 1},
+					{"totalIds", 1},
+				}}},
 			}},
-			{"requestIdsCount", bson.D{{"$first", "$idsCount"}}},
+			{"topIds", bson.A{
+				bson.D{{"$unwind", "$ids"}},
+				bson.D{{"$group", bson.D{
+					{"_id", "$ids"},
+					{"count", bson.D{{"$sum", 1}}},
+				}}},
+				bson.D{{"$sort", bson.D{{"count", -1}}}},
+				bson.D{{"$limit", topIds}},
+			}},
+			// Facet for status counts with deduplication.
+			{"statusCounts", bson.A{
+				// First group by composite key to remove duplicates.
+				bson.D{{"$group", bson.D{
+					{"_id", bson.D{
+						{"address", "$address"},
+						{"ids", "$ids"},
+					}},
+					{"status", bson.D{{"$first", "$status"}}},
+				}}},
+				// Now group all unique records and count statuses.
+				bson.D{{"$group", bson.D{
+					{"_id", nil},
+					{"queued", bson.D{{"$sum", bson.D{{"$cond", bson.A{
+						bson.D{{"$eq", bson.A{"$status", "queued"}}},
+						1,
+						0,
+					}}}}}},
+					{"sent", bson.D{{"$sum", bson.D{{"$cond", bson.A{
+						bson.D{{"$eq", bson.A{"$status", "sent"}}},
+						1,
+						0,
+					}}}}}},
+				}}},
+				bson.D{{"$project", bson.D{
+					{"_id", 0},
+					{"queued", 1},
+					{"sent", 1},
+				}}},
+			}},
 		}}},
-		// Stage 3: Aggregate over all unique letter requests.
-		{{"$group", bson.D{
-			{"_id", nil},
-			{"uniqueRequests", bson.D{{"$sum", 1}}},
-			{"totalIds", bson.D{{"$sum", "$requestIdsCount"}}},
-		}}},
-		// Stage 4: Project the output fields.
 		{{"$project", bson.D{
-			{"_id", 0},
-			{"uniqueRequests", 1},
-			{"totalIds", 1},
+			{"uniqueRequests", bson.D{{"$arrayElemAt", bson.A{"$uniqueSummary.uniqueRequests", 0}}}},
+			{"totalIds", bson.D{{"$arrayElemAt", bson.A{"$uniqueSummary.totalIds", 0}}}},
+			{"top10Ids", 1},
+			{"statusCounts", bson.D{{"$arrayElemAt", bson.A{"$statusCounts", 0}}}},
 		}}},
 	}
 
+	// Set a timeout for the aggregation operation.
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Execute the aggregation pipeline.
 	cursor, err := h.collection.Aggregate(ctx, pipeline)
 	if err != nil {
-		h.logger.Error("Failed to aggregate", "error", err)
-		http.Error(w, "Failed to aggregate", http.StatusInternalServerError)
+		log.Fatal("Aggregation error: ", err)
 	}
 	defer cursor.Close(ctx)
 
