@@ -51,7 +51,8 @@ func migrateIdObjectIdToString(collection *mongo.Collection) {
 	}
 
 	for _, doc := range docs {
-		// Convert ObjectId to string
+
+		//Convert ObjectId to string
 		objectID, ok := doc["_id"].(primitive.ObjectID)
 		if !ok {
 			continue

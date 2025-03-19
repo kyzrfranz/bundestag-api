@@ -28,11 +28,12 @@ type LetterRequest struct {
 	MyMdbs  []string `json:"myMdbs,omitempty"`
 	Status  string   `json:"status,omitempty"`
 	Address struct {
-		Name   string `json:"name"`
-		Street string `json:"street"`
-		Number int    `json:"number"`
-		Zip    string `json:"zip"`
-		City   string `json:"city"`
+		Name    string `json:"name"`
+		Company string `json:"company,omitempty"`
+		Street  string `json:"street"`
+		Number  int    `json:"number"`
+		Zip     string `json:"zip"`
+		City    string `json:"city"`
 	} `json:"address"`
 	CreationDate time.Time `json:"creation_date,omitempty"`
 }
@@ -40,6 +41,7 @@ type LetterRequest struct {
 type Stats struct {
 	UniqueRequests int `bson:"uniqueRequests" json:"uniqueRequests"`
 	TotalIds       int `bson:"totalIds" json:"totalLetters"`
+	SentIds        int `bson:"sentIds" json:"sentIds"`
 	TopIds         []struct {
 		ID    string `bson:"_id" json:"id"`
 		Count int    `bson:"count" json:"count"`
@@ -236,15 +238,20 @@ func (h *LetterHandler) Stats(w http.ResponseWriter, req *http.Request) {
 			}},
 			// Facet for status counts with deduplication.
 			{"statusCounts", bson.A{
-				// First group by composite key to remove duplicates.
+				// First, add the idsCount field to each document.
+				bson.D{{"$addFields", bson.D{
+					{"idsCount", bson.D{{"$size", "$ids"}}},
+				}}},
+				// Deduplicate by composite key (address and ids), capturing the first status and idsCount.
 				bson.D{{"$group", bson.D{
 					{"_id", bson.D{
 						{"address", "$address"},
 						{"ids", "$ids"},
 					}},
 					{"status", bson.D{{"$first", "$status"}}},
+					{"idsCount", bson.D{{"$first", "$idsCount"}}},
 				}}},
-				// Now group all unique records and count statuses.
+				// Now group all unique jobs to count statuses and accumulate sentLetters.
 				bson.D{{"$group", bson.D{
 					{"_id", nil},
 					{"queued", bson.D{{"$sum", bson.D{{"$cond", bson.A{
@@ -257,11 +264,17 @@ func (h *LetterHandler) Stats(w http.ResponseWriter, req *http.Request) {
 						1,
 						0,
 					}}}}}},
+					{"sentLetters", bson.D{{"$sum", bson.D{{"$cond", bson.A{
+						bson.D{{"$eq", bson.A{"$status", "sent"}}},
+						"$idsCount",
+						0,
+					}}}}}},
 				}}},
 				bson.D{{"$project", bson.D{
 					{"_id", 0},
 					{"queued", 1},
 					{"sent", 1},
+					{"sentLetters", 1},
 				}}},
 			}},
 		}}},
@@ -269,6 +282,7 @@ func (h *LetterHandler) Stats(w http.ResponseWriter, req *http.Request) {
 			{"uniqueRequests", bson.D{{"$arrayElemAt", bson.A{"$uniqueSummary.uniqueRequests", 0}}}},
 			{"totalIds", bson.D{{"$arrayElemAt", bson.A{"$uniqueSummary.totalIds", 0}}}},
 			{"topIds", 1},
+			{"sentIds", bson.D{{"$arrayElemAt", bson.A{"$statusCounts.sentLetters", 0}}}},
 			{"statusCounts", bson.D{{"$arrayElemAt", bson.A{"$statusCounts", 0}}}},
 		}}},
 	}
