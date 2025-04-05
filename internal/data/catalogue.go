@@ -2,6 +2,7 @@ package data
 
 import (
 	"encoding/xml"
+	"fmt"
 	"github.com/kyzrfranz/buntesdach/pkg/resources"
 	"github.com/samber/lo"
 )
@@ -53,7 +54,7 @@ func (r *CatalogReader[T, E]) GetCatalogueEntry(id string) (*E, error) {
 		return e.GetId() == id
 	})
 	if !ok {
-		return nil, nil
+		return nil, fmt.Errorf("not found")
 	}
 
 	return &catalogEntry, nil

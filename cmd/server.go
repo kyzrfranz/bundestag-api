@@ -3,8 +3,8 @@ package main
 import (
 	v1 "github.com/kyzrfranz/buntesdach/api/v1"
 	"github.com/kyzrfranz/buntesdach/internal/data"
-	"github.com/kyzrfranz/buntesdach/internal/db"
 	"github.com/kyzrfranz/buntesdach/internal/http"
+	"github.com/kyzrfranz/buntesdach/internal/proxy"
 	"github.com/kyzrfranz/buntesdach/internal/rest"
 	"github.com/kyzrfranz/buntesdach/internal/upstream"
 	"github.com/kyzrfranz/buntesdach/pkg/resources"
@@ -14,24 +14,14 @@ import (
 )
 
 var (
-	logger          *slog.Logger
-	mongoUri        string
-	mongoCollection string
-	authKey         string
+	logger              *slog.Logger
+	constSearchProxyUrl string
 )
 
 func main() {
 
 	logger = slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
-	mongoUri = stringOrEnv("MONGO_URI", "")
-	mongoCollection = stringOrEnv("MONGO_COLLECTION", "test")
-	authKey = stringOrEnv("AUTH_KEY", "")
-	cli, err := db.NewV1MongoClient(db.WithUri(mongoUri))
-	if err != nil {
-		logger.Error("failed to connect to mongo", "error", err)
-		os.Exit(1)
-	}
+	constSearchProxyUrl = stringOrEnv("CONSTITUENCY_PROXY_URL", "https://www.bundestag.de/ajax/filterlist/de/533302-533302/plz-ort-autocomplete")
 
 	dataUrl := mustGetUrl("https://www.bundestag.de/xml/v2/mdb/index.xml") // TODO config
 	politicianReader := data.NewCatalogReader[v1.PersonCatalog, v1.PersonListEntry](&upstream.XMLFetcher{Url: dataUrl})
@@ -57,14 +47,8 @@ func main() {
 	apiServer.AddHandler("/committees/{id}/detail", committeeDetailHandler.Get)
 
 	//proxy for zipcode search
-	apiServer.AddHandler("/constituencies/{zipcode}", rest.Find)
-
-	collection := cli.Database("buntesdach").Collection(mongoCollection)
-	letterHandler := rest.NewLetterHandler(resources.NewDetailRepo[v1.Politician](&politicianReader), collection, authKey)
-	apiServer.AddHandler("/letters/{id}", letterHandler.Handle)
-	apiServer.AddHandler("/letters", letterHandler.Handle)
-	apiServer.AddHandler("/letters/stats", letterHandler.Stats)
-	//apiServer.AddHandler("/letters", letterHandler.Delete)
+	cProxy := proxy.NewConstituencyProxy(constSearchProxyUrl)
+	apiServer.AddHandler("/constituencies/{zipcode}", cProxy.ConstituencySearch)
 
 	apiServer.ListenAndServe()
 }

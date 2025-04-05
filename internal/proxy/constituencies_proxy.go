@@ -1,10 +1,11 @@
-package rest
+package proxy
 
 import (
 	"encoding/json"
 	"fmt"
 	v1 "github.com/kyzrfranz/buntesdach/api/v1"
 	myHttp "github.com/kyzrfranz/buntesdach/internal/http"
+	"github.com/kyzrfranz/buntesdach/internal/rest"
 	"net/http"
 	"net/url"
 	"strings"
@@ -17,12 +18,18 @@ type SearchResult struct {
 	} `json:"results"`
 }
 
-const baseUrl = "https://www.bundestag.de/ajax/filterlist/de/533302-533302/plz-ort-autocomplete"
+type ConstProxy struct {
+	proxyUrl string
+}
 
-func Find(w http.ResponseWriter, req *http.Request) {
+func NewConstituencyProxy(proxyUrl string) *ConstProxy {
+	return &ConstProxy{proxyUrl: proxyUrl}
+}
+
+func (proxy *ConstProxy) ConstituencySearch(w http.ResponseWriter, req *http.Request) {
 	zipcode := req.PathValue("zipcode")
 
-	query, err := url.Parse(fmt.Sprintf("%s?term=%s&_type=query&q=%s", baseUrl, zipcode, zipcode))
+	query, err := url.Parse(fmt.Sprintf("%s?term=%s&_type=query&q=%s", proxy.proxyUrl, zipcode, zipcode))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -47,7 +54,7 @@ func Find(w http.ResponseWriter, req *http.Request) {
 		constituencies = append(constituencies, v1.Constituency{Number: idParts[0], Name: strings.Trim(strings.Join(parts, ","), " ")})
 	}
 
-	if err = marshalResponse(w, constituencies); err != nil {
+	if err = rest.MarshalResponse(w, constituencies); err != nil {
 		http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
 		return
 	}

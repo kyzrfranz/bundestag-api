@@ -27,10 +27,10 @@ type PersonListEntry struct {
 	State                string       `json:"state" xml:"mdbLand"`
 	Constituency         Constituency `json:"constituency,omitempty" xml:"mdbWahlkreis"`
 	Elected              string       `json:"elected,omitempty" xml:"mdbGewaehlt"`
-	FotoURL              string       `json:"photoUrl" xml:"mdbFotoURL"`
-	FotoGrossURL         string       `json:"photoGrossUrl" xml:"mdbFotoGrossURL"`
-	FotoLastChanged      string       `json:"photoLastChanged" xml:"mdbFotoLastChanged"`
-	FotoChangedDateTime  string       `json:"photoChangedDateTime" xml:"mdbFotoChangedDateTime"`
+	PhotoURL             string       `json:"photoUrl" xml:"mdbFotoURL"`
+	PhotoLargeURL        string       `json:"photoLargeUrl" xml:"mdbFotoGrossURL"`
+	PhotoLastChanged     string       `json:"photoLastChanged" xml:"mdbFotoLastChanged"`
+	PhotoChangedDateTime string       `json:"photoChangedDateTime" xml:"mdbFotoChangedDateTime"`
 	ImageAltText         string       `json:"imageAltText" xml:"imageAltText"`
 	LastChanged          string       `json:"lastChanged" xml:"lastChanged"`
 	ChangedDateTime      string       `json:"changedDateTime" xml:"changedDateTime"`

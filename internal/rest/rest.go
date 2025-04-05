@@ -4,8 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/kyzrfranz/buntesdach/internal/img"
 	"github.com/kyzrfranz/buntesdach/pkg/resources"
+	"io"
 	"net/http"
+	"os"
 )
 
 type Link struct {
@@ -36,24 +39,48 @@ func NewHandler[T any](resourceRepo resources.Repository[T]) Handler[T] {
 func (r genericHandler[T]) List(w http.ResponseWriter, req *http.Request) {
 	res := r.repo.List(r.context)
 
-	if err := marshalResponse(w, res); err != nil {
+	if err := MarshalResponse(w, res); err != nil {
 		http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
 		return
 	}
 }
 
 func (r genericHandler[T]) Get(w http.ResponseWriter, req *http.Request) {
-	res, err := r.repo.Get(r.context, req.PathValue("id"))
+	id := req.PathValue("id")
+	res, err := r.repo.Get(r.context, id)
 
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	if err = marshalResponse(w, res); err != nil {
-		http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
-		return
+	if req.Header.Get("Accept") == "image/webp" {
+		err := img.EnsureImage(res, id)
+		if err != nil {
+			http.Error(w, "Image not found", http.StatusNotFound)
+			return
+		}
+		f, err := os.Open(fmt.Sprintf(".img/%s.webp", id))
+		if err != nil {
+			http.Error(w, "Image not found", http.StatusNotFound)
+			return
+		}
+		defer f.Close()
+
+		w.Header().Set("Content-Type", "image/webp")
+		w.WriteHeader(http.StatusOK)
+
+		if _, err := io.Copy(w, f); err != nil {
+			http.Error(w, "Failed to stream image", http.StatusInternalServerError)
+			return
+		}
+	} else {
+		if err = MarshalResponse(w, res); err != nil {
+			http.Error(w, "Failed to marshal response", http.StatusInternalServerError)
+			return
+		}
 	}
+
 }
 
 func (r genericHandler[T]) Create(w http.ResponseWriter, req *http.Request) {
@@ -72,7 +99,7 @@ func (r genericHandler[T]) Path() string {
 	return fmt.Sprintf("/%s", r.repo.Name())
 }
 
-func marshalResponse(w http.ResponseWriter, res interface{}) error {
+func MarshalResponse(w http.ResponseWriter, res interface{}) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
