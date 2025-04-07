@@ -14,7 +14,7 @@ RUN apt-get update && apt-get install -y \
     rm -rf /var/lib/apt/lists/*
 
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=build /app/build/buntesdach-api-amd64-linux /buntesdach-api
+COPY --from=build /app/build/bundestag-api-amd64-linux /bundestag-api
 
 EXPOSE 8080
-ENTRYPOINT ["/buntesdach-api"]
+ENTRYPOINT ["/bundestag-api"]

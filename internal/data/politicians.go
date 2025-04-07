@@ -2,8 +2,8 @@ package data
 
 import (
 	"encoding/xml"
-	v1 "github.com/kyzrfranz/buntesdach/api/v1"
-	"github.com/kyzrfranz/buntesdach/pkg/resources"
+	v1 "github.com/kyzrfranz/bundestag-api/api/v1"
+	"github.com/kyzrfranz/bundestag-api/pkg/resources"
 	"github.com/samber/lo"
 )
 

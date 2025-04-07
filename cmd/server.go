@@ -1,13 +1,13 @@
 package main
 
 import (
-	v1 "github.com/kyzrfranz/buntesdach/api/v1"
-	"github.com/kyzrfranz/buntesdach/internal/data"
-	"github.com/kyzrfranz/buntesdach/internal/http"
-	"github.com/kyzrfranz/buntesdach/internal/proxy"
-	"github.com/kyzrfranz/buntesdach/internal/rest"
-	"github.com/kyzrfranz/buntesdach/internal/upstream"
-	"github.com/kyzrfranz/buntesdach/pkg/resources"
+	v1 "github.com/kyzrfranz/bundestag-api/api/v1"
+	"github.com/kyzrfranz/bundestag-api/internal/data"
+	"github.com/kyzrfranz/bundestag-api/internal/http"
+	"github.com/kyzrfranz/bundestag-api/internal/proxy"
+	"github.com/kyzrfranz/bundestag-api/internal/rest"
+	"github.com/kyzrfranz/bundestag-api/internal/upstream"
+	"github.com/kyzrfranz/bundestag-api/pkg/resources"
 	"log/slog"
 	"net/url"
 	"os"

@@ -3,7 +3,7 @@ package data
 import (
 	"encoding/xml"
 	"fmt"
-	"github.com/kyzrfranz/buntesdach/pkg/resources"
+	"github.com/kyzrfranz/bundestag-api/pkg/resources"
 	"github.com/samber/lo"
 )
 

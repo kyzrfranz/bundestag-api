@@ -34,15 +34,12 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker buildx build --platform linux/amd64 --push -t eu.gcr.io/buntesdach/buntesdach-api:latest .
+          docker buildx build --platform linux/amd64 --push -t eu.gcr.io/kyzrlabs/bundestag-api:latest .
 
       - name: Deploy to Cloud Run
-        env:
-          MONGO_URI: ${{ secrets.MONGO_URI }}
-          AUTH_KEY: ${{ secrets.AUTH_KEY }}
         run: |
-          gcloud run deploy buntesdach-api \
-            --image=eu.gcr.io/buntesdach/buntesdach-api:latest \
+          gcloud run deploy bundestag-api \
+            --image=eu.gcr.io/kyzrlabs/bundestag-api:latest \
             --use-http2 \
             --region=europe-west1 \
             --platform=managed \
@@ -52,4 +49,4 @@ jobs:
             --concurrency=2 \
             --memory=128Mi \
             --cpu=1 \
-            --set-env-vars=MONGO_URI=${MONGO_URI},MONGO_COLLECTION="live-bucket-1",AUTH_KEY=${AUTH_KEY}
+            --set-env-vars=CONSTITUENCY_PROXY_URL="https://www.bundestag.de/ajax/filterlist/de/533302-533302/plz-ort-autocomplete"

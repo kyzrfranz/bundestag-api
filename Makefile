@@ -5,9 +5,9 @@ GO=$(GOROOT)/bin/go
 
 GOFLAGS = ''
 
-PROJECT := buntesdach-api
+PROJECT := bundestag-api
 BUILD_DIR = ./build
-BUILD_TARGET = $(BUILD_DIR)/buntesdach-api
+BUILD_TARGET = $(BUILD_DIR)/bundestag-api
 PUB_TARGET=$(PUB_DIR)/$(PROJECT)
 
 dev:
@@ -54,7 +54,7 @@ clean:
 	rm -rf $(BUILD_DIR)/*
 
 dockerize-local:
-	docker buildx build --platform linux/amd64 -t eu.gcr.io/buntesdach/buntesdach-api:latest . 
+	docker buildx build --platform linux/amd64 -t eu.gcr.io/kyzrlabs/bundestag-api:latest .
 
 dockerize:
-	docker buildx build --platform linux/amd64 -t eu.gcr.io/buntesdach/buntesdach-api:latest . --push
+	docker buildx build --platform linux/amd64 -t eu.gcr.io/kyzrlabs/bundestag-api:latest . --push

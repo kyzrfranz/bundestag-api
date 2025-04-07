@@ -3,9 +3,9 @@ package proxy
 import (
 	"encoding/json"
 	"fmt"
-	v1 "github.com/kyzrfranz/buntesdach/api/v1"
-	myHttp "github.com/kyzrfranz/buntesdach/internal/http"
-	"github.com/kyzrfranz/buntesdach/internal/rest"
+	v1 "github.com/kyzrfranz/bundestag-api/api/v1"
+	myHttp "github.com/kyzrfranz/bundestag-api/internal/http"
+	"github.com/kyzrfranz/bundestag-api/internal/rest"
 	"net/http"
 	"net/url"
 	"strings"

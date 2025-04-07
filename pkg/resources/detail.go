@@ -3,7 +3,7 @@ package resources
 import (
 	"context"
 	"encoding/xml"
-	myhttp "github.com/kyzrfranz/buntesdach/internal/http"
+	myhttp "github.com/kyzrfranz/bundestag-api/internal/http"
 	"net/url"
 )
 
