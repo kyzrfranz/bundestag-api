@@ -54,7 +54,7 @@ clean:
 	rm -rf $(BUILD_DIR)/*
 
 dockerize-local:
-	docker buildx build --platform linux/amd64 -t eu.gcr.io/kyzrlabs/bundestag-api:latest .
+	docker buildx build --platform linux/amd64 -t eu.gcr.io/buntesdach/bundestag-api:latest .
 
 dockerize:
-	docker buildx build --platform linux/amd64 -t eu.gcr.io/kyzrlabs/bundestag-api:latest . --push
+	docker buildx build --platform linux/amd64 -t eu.gcr.io/buntesdach/bundestag-api:latest . --push
