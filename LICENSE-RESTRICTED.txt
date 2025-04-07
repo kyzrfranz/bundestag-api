@@ -1,0 +1,28 @@
+Restricted Use License for Nonprofit and Civil Organizations
+Version 1.0 – 07.04.2025
+
+This software is licensed under the following terms and conditions:
+
+1. Permission is hereby granted, free of charge, to use, modify, and distribute this software, provided that all the following conditions are met.
+
+2. Permitted Users:
+   a. Registered non-governmental organizations (NGOs);
+   b. Nonprofit associations, foundations, and charitable organizations;
+   c. Academic institutions and research organizations;
+   d. Public-benefit entities as defined by national laws (§§ 51–68 AO in Germany or equivalent in other jurisdictions).
+
+3. Excluded Users:
+   a. Political parties or organizations directly affiliated with political parties;
+   b. Governmental intelligence agencies;
+   c. Organizations officially monitored, designated as "suspected cases", or classified as extremist or unconstitutional by domestic or international constitutional protection authorities (e.g., Germany’s Bundesamt für Verfassungsschutz);
+   d. Any entity engaging in activities violating basic human rights or democratic principles.
+
+4. This license **explicitly prohibits** the use of this software by the Excluded Users listed above.
+
+5. The software is provided "as is", without warranty of any kind, express or implied. The author(s) shall not be held liable for any claims, damages, or other liabilities arising from the use of this software.
+
+6. The author reserves the right to revoke this license from any entity found in violation of the above conditions.
+
+For commercial, governmental, or other use cases not covered by this license, please contact the author to obtain a separate license.
+
+[Thomas Hieber / hieber.thomas@gmx.de]

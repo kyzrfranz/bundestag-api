@@ -1,0 +1,6 @@
+This project is dual-licensed under:
+
+1. MIT License – for general use, including commercial use. See LICENSE-MIT.txt.
+2. Restricted Use License – for NGOs, nonprofits, and civil organizations. See LICENSE-RESTRICTED.txt.
+
+If you are unsure which license applies to you, or wish to request an exemption, please contact [hieber.thomas@gmx.de].
