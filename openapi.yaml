@@ -1,0 +1,358 @@
+openapi: 3.1.1
+info:
+  title: Bundestag API
+  description: API zum Abrufen von Informationen über Mitglieder des Deutschen Bundestages.
+  version: 1.0.0
+servers:
+  - url: https://bundestag-api.kyzrlabs.cloud
+paths:
+  /politicians:
+    get:
+      summary: Liste aller Mitglieder des Deutschen Bundestages abrufen.
+      responses:
+        '200':
+          description: Erfolgreiche Antwort mit der Liste der Mitglieder.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Politician'
+  /politicians/{id}:
+    get:
+      summary: Informationen zu einem bestimmten Mitglied des Deutschen Bundestages abrufen.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Eindeutige ID des Mieglied des Deutschen Bundestages.
+      responses:
+        '200':
+          description: Erfolgreiche Antwort mit den Informationen des Mitglied des Deutschen Bundestages.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliticianBio'
+        '404':
+          description: Mieglied des Deutschen Bundestages nicht gefunden.
+  /politicians/{id}/bio:
+    get:
+      summary: Informationen zu einem bestimmten Mitglied des Deutschen Bundestages abrufen.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Eindeutige ID des Mitglied des Deutschen Bundestags.
+      responses:
+        '200':
+          description: Erfolgreiche Antwort mit den Informationen des Mitglied des Deutschen Bundestages.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Politician'
+        '404':
+          description: Mieglied des Deutschen Bundestages nicht gefunden.
+  /committees:
+    get:
+      summary: Liste aller Mitglieder des Deutschen Bundestages abrufen.
+      responses:
+        '200':
+          description: Erfolgreiche Antwort mit der Liste der Komitee.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Committee'
+  /committees/{id}:
+    get:
+      summary: Informationen zu einem bestimmten Komitee abrufen.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Eindeutige ID des Komitee.
+      responses:
+        '200':
+          description: Erfolgreiche Antwort mit den Informationen des Komitee.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Committee'
+        '404':
+          description: Komitee nicht gefunden.
+  /committees/{id}/detail:
+    get:
+      summary: Informationen zu einem bestimmten Komitee abrufen.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Eindeutige ID des Komitee.
+      responses:
+        '200':
+          description: Erfolgreiche Antwort mit den Informationen des Komitee.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Committee'
+        '404':
+          description: Komitee nicht gefunden.
+  /constituencies/{zipcode}:
+    get:
+      summary: Liste der Wahlkreise für eine Postleitzahl abfragen.
+      parameters:
+        - in: path
+          name: zipcode
+          required: true
+          schema:
+            type: string
+          description: Postleitzahl für die Suche nach Wahlkreisen.
+      responses:
+        '200':
+          description: Erfolgreiche Antwort mit der Liste der Wahlkreise.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Constituency'
+components:
+  schemas:
+    Politician:
+      type: object
+      properties:
+        documentInfo:
+          $ref: '#/components/schemas/DocumentInfo'
+        bio:
+          $ref: '#/components/schemas/PoliticianBio'
+        media:
+          $ref: '#/components/schemas/Media'
+    PoliticianBio:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ID'
+          description: URL zum diesem Dokument.
+        articleID: 
+          type: string
+          description: The URL zum Artikel. 
+        sourceURL: 
+          type: string
+          description: TODO
+        exitDate: 
+          type: string
+          description: TODO
+        lastName: 
+          type: string
+          description: Nachmame.
+        firstName: 
+          type: string
+          description: Vorname.
+        nobilityTitle: 
+          type: string
+          description: TODO
+        academicTitle: 
+          type: string
+          description: TODO
+        locationSuffix: 
+          type: string
+          description: TODO
+        dateOfBirth: 
+          type: string
+          description: Geburtsdatum.
+        religionOrDenomination: 
+          type: string
+          description: TODO
+        educationOrProfessionalQualification: 
+          type: string
+          description: TODO
+        higherEducation: 
+          type: string
+          description: TODO
+        profession: 
+          $ref: '#/components/schemas/Profession'
+          description: TODO
+        gender: 
+          type: string
+          description: Geschlecht.
+        maritalStatus: 
+          type: string
+          description: TODO
+        numberKids: 
+          type: string
+          description: Anzahl Kinder.
+        faction: 
+          type: string
+          description: TODO
+        party: 
+          type: string
+          description: TODO
+        state: 
+          type: string
+          description: Bundesland.
+        constituency: 
+          $ref: '#/components/schemas/Constituency'
+          description: TODO
+        elected: 
+          type: string
+          description: TODO
+        bioURL: 
+          type: string
+          description: TODO
+        biographicInfo: 
+          type: string
+          description: TODO
+        trivia: 
+          type: string
+          description: TODO
+        homepage: 
+          type: string
+          description: Homepage.
+        otherWebsite: 
+          $ref: '#/components/schemas/OtherWebsites'
+          description: TODO
+        phone: 
+          type: string
+          description: Telefonnumer.
+        memberships: 
+          $ref: '#/components/schemas/Memberships'
+          description: TODO
+        mandatedpublishableinfo: 
+          type: string
+          description: TODO
+    DocumetInfo:
+      type: object
+      properties:
+        documentURL:
+          type: string
+          description: URL zum diesem Dokument.
+        documentStand: 
+          type: string
+          description: Status des Dokument. 
+    Media:
+      type: object
+      properties:
+        foto:
+          $ref: '#/components/schemas/Foto'
+          description: TODO
+        speechesUrl: 
+          type: string
+          description: TODO
+        speechesRSS: 
+          type: string
+          description: TODO
+    Foto:
+      type: object
+      properties:
+        url:
+          type: string
+          description: Die URL für das Foto.
+        copyright: 
+          type: string
+          description: Copyright des Foto.
+        largeUrl: 
+          type: string
+          description: Die URL für eine große Version des Foto.
+        altText: 
+          type: string
+          description: Der Alt-Text für das Foto.
+    Profession:
+      type: object
+      properties:
+        field:
+          type: string
+          description: TODO
+        value: 
+          type: string
+          description: TODO
+    Constituency:
+      type: object
+      properties:
+        number:
+          type: string
+          description: TODO
+        name: 
+          type: string
+          description: TODO
+        url: 
+          type: string
+          description: TODO
+    OtherWebsites:
+      type: object
+      properties:
+        websites:
+          type: array
+          description: TODO
+          items:
+            $ref: '#/components/schemas/Website'
+    Website:
+      type: object
+      properties:
+        title:
+          type: string
+          description: TODO
+        url:
+          type: string
+          description: TODO
+    Memberships:
+      type: object
+      properties:
+        leadCommittees:
+          type: array
+          description: TODO
+          items:
+            $ref: '#/components/schemas/Committee'
+        regularmembercommittees:
+          type: array
+          description: TODO
+          items:
+            $ref: '#/components/schemas/Committee'
+        substitutemembercommittees:
+          type: array
+          description: TODO
+          items:
+            $ref: '#/components/schemas/Committee'
+        vicechairothercommittees:
+          type: array
+          description: TODO
+          items:
+            $ref: '#/components/schemas/Committee'
+    Committee:
+      type: object
+      properties:
+        id:
+          type: string
+          description: TODO
+        name:
+          type: string
+          description: TODO
+        url:
+          type: string
+          description: TODO
+    MdBName:
+      type: object
+      properties:
+        value:
+          type: string
+          description: TODO
+        status:
+          type: string
+          description: TODO
+    ID:
+      type: object
+      properties:
+        value:
+          type: string
+          description: TODO
+        status:
+          type: string
+          description: TODO
