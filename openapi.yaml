@@ -22,9 +22,24 @@ paths:
           schema:
             type: string
           description: Unique ID of the member of the Bundestag.
+        - in: header
+          name: Accept
+          required: false
+          schema:
+            type: string
+            enum: [application/json, image/webp]
+          description: Desired response format.
       responses:
         '200':
           description: Successful response with information about the member of the Bundestag.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliticianBio'
+            image/webp:
+              schema:
+                type: string
+                format: binary
         '404':
           description: Member of the Bundestag not found.
   /politicians/{id}/bio:
