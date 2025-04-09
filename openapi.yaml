@@ -1,0 +1,198 @@
+openapi: 3.1.1
+info:
+  title: Bundestag API
+  description: API for retrieving information about members of the German Bundestag.
+  version: 1.0.0
+servers:
+  - url: https://bundestag-api.kyzrlabs.cloud
+paths:
+  /politicians:
+    get:
+      summary: Retrieve a list of all members of the German Bundestag.
+      responses:
+        '200':
+          description: Successful response with the list of members.
+  /politicians/{id}:
+    get:
+      summary: Retrieve information about a specific member of the German Bundestag.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the member of the Bundestag.
+        - in: header
+          name: Accept
+          required: false
+          schema:
+            type: string
+            enum: [application/json, image/webp]
+          description: Desired response format.
+      responses:
+        '200':
+          description: Successful response with information about the member of the Bundestag.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PoliticianBio'
+            image/webp:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Member of the Bundestag not found.
+  /politicians/{id}/bio:
+    get:
+      summary: Retrieve biographic information about a specific member of the Bundestag.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the member of the Bundestag.
+      responses:
+        '200':
+          description: Successful response with biographic information about the member.
+        '404':
+          description: Member of the Bundestag not found.
+  /committees:
+    get:
+      summary: Retrieve a list of all committees.
+      responses:
+        '200':
+          description: Successful response with the list of committees.
+  /committees/{id}:
+    get:
+      summary: Retrieve information about a specific committee.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the committee.
+      responses:
+        '200':
+          description: Successful response with information about the committee.
+        '404':
+          description: Committee not found.
+  /committees/{id}/detail:
+    get:
+      summary: Retrieve detailed information about a specific committee.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Unique ID of the committee.
+      responses:
+        '200':
+          description: Successful response with detailed committee information.
+        '404':
+          description: Committee not found.
+  /constituencies/{zipcode}:
+    get:
+      summary: Retrieve a list of constituencies for a given postal code.
+      parameters:
+        - in: path
+          name: zipcode
+          required: true
+          schema:
+            type: string
+          description: Postal code for constituency search.
+      responses:
+        '200':
+          description: Successful response with the list of constituencies.
+components:
+  schemas:
+    PoliticianBio:
+      type: object
+      properties:
+        id:
+          description: URL of this document.
+        articleID:
+          type: string
+          description: URL of the article.
+        sourceURL:
+          type: string
+          description: Source URL.
+        exitDate:
+          type: string
+          description: Exit date.
+        lastName:
+          type: string
+          description: Last name.
+        firstName:
+          type: string
+          description: First name.
+        nobilityTitle:
+          type: string
+          description: Nobility title.
+        academicTitle:
+          type: string
+          description: Academic title.
+        locationSuffix:
+          type: string
+          description: Location suffix.
+        dateOfBirth:
+          type: string
+          description: Date of birth.
+        religionOrDenomination:
+          type: string
+          description: Religion or denomination.
+        educationOrProfessionalQualification:
+          type: string
+          description: Education or professional qualification.
+        higherEducation:
+          type: string
+          description: Higher education.
+        profession:
+          description: Profession.
+        gender:
+          type: string
+          description: Gender.
+        maritalStatus:
+          type: string
+          description: Marital status.
+        numberKids:
+          type: string
+          description: Number of children.
+        faction:
+          type: string
+          description: Parliamentary group.
+        party:
+          type: string
+          description: Party.
+        state:
+          type: string
+          description: Federal state.
+        constituency:
+          description: Electoral district.
+        elected:
+          type: string
+          description: Elected (status or date).
+        bioURL:
+          type: string
+          description: URL of the biography.
+        biographicInfo:
+          type: string
+          description: Biographical information.
+        trivia:
+          type: string
+          description: Trivia or additional info.
+        homepage:
+          type: string
+          description: Homepage.
+        otherWebsite:
+          description: Other websites.
+        phone:
+          type: string
+          description: Phone number.
+        memberships:
+          description: Committee memberships.
+        mandatedpublishableinfo:
+          type: string
+          description: Mandated publishable information.
