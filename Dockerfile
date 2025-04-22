@@ -15,6 +15,7 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build /app/build/bundestag-api-amd64-linux /bundestag-api
+COPY --from=build /app/static /static
 
 EXPOSE 8080
 ENTRYPOINT ["/bundestag-api"]
