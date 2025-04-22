@@ -29,4 +29,4 @@ make run
 
 ## How to use
 
-Use the [apidoc](openapi.yaml) to see the available endpoints.
+Use the [apidoc](./api/v1/openapi.yaml) to see the available endpoints.
