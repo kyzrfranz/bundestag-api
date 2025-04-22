@@ -3,7 +3,7 @@ Version 1.1 – April 7 2025
 
 NICE = Nonprofits and Independent Civil Entities
 
-Copyright (c) 2025 [Author or Organization Name]
+Copyright (c) 2025 kyzrfranz
 
 Permission is hereby granted, free of charge, to use, modify, and distribute this Software and associated documentation files (the “Software”) under the following conditions:
 
@@ -49,6 +49,6 @@ If you're an NGO, welcome.
 If you're a shady lobby, extremist group, political think tank, or want to sell this:
 **K.M.A. – Kindly Move your Asshole elsewhere.**
 
-For questions: [email/contact]
+For questions: hieber.thomas@gmx.de
 
 SPDX-License-Identifier: NICE-1.1
