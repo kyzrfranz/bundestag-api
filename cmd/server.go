@@ -46,6 +46,8 @@ func main() {
 	apiServer.AddHandler("/committees/{id}", committeeCatalogueHandler.Get)
 	apiServer.AddHandler("/committees/{id}/detail", committeeDetailHandler.Get)
 
+	apiServer.AddStaticHandler("/", "./static")
+
 	//proxy for zipcode search
 	cProxy := proxy.NewConstituencyProxy(constSearchProxyUrl)
 	apiServer.AddHandler("/constituencies/{zipcode}", cProxy.ConstituencySearch)

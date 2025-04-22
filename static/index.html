@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Bundestag API Documentation</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 2rem auto; line-height: 1.6; }
+        h1, h2, h3 { color: #1a237e; }
+        code { background: #f5f5f5; padding: 0.2em 0.4em; border-radius: 4px; }
+        .endpoint { margin-bottom: 1.5rem; }
+    </style>
+</head>
+<body>
+<h1>Bundestag API</h1>
+<p><strong>Description:</strong> API for retrieving information about members of the German Bundestag.</p>
+<p><strong>Version:</strong> 1.0.0</p>
+<p><strong>Base URL:</strong> <code>https://bundestag-api.kyzrlabs.cloud</code></p>
+
+<h2>Available Endpoints</h2>
+
+<div class="endpoint">
+    <h3>GET <code>/politicians</code></h3>
+    <p>Retrieve a list of all members of the German Bundestag.</p>
+</div>
+
+<div class="endpoint">
+    <h3>GET <code>/politicians/{id}</code></h3>
+    <p>Retrieve information about a specific member.</p>
+    <ul>
+        <li><strong>Path parameter:</strong> <code>id</code> (string)</li>
+        <li><strong>Optional header:</strong> <code>Accept</code> (application/json or image/webp)</li>
+    </ul>
+</div>
+
+<div class="endpoint">
+    <h3>GET <code>/politicians/{id}/bio</code></h3>
+    <p>Retrieve biographic information about a specific member.</p>
+    <ul>
+        <li><strong>Path parameter:</strong> <code>id</code> (string)</li>
+    </ul>
+</div>
+
+<div class="endpoint">
+    <h3>GET <code>/committees</code></h3>
+    <p>Retrieve a list of all committees.</p>
+</div>
+
+<div class="endpoint">
+    <h3>GET <code>/committees/{id}</code></h3>
+    <p>Retrieve information about a specific committee.</p>
+    <ul>
+        <li><strong>Path parameter:</strong> <code>id</code> (string)</li>
+    </ul>
+</div>
+
+<div class="endpoint">
+    <h3>GET <code>/committees/{id}/detail</code></h3>
+    <p>Retrieve detailed information about a specific committee.</p>
+    <ul>
+        <li><strong>Path parameter:</strong> <code>id</code> (string)</li>
+    </ul>
+</div>
+
+<div class="endpoint">
+    <h3>GET <code>/constituencies/{zipcode}</code></h3>
+    <p>Retrieve a list of constituencies for a given postal code.</p>
+    <ul>
+        <li><strong>Path parameter:</strong> <code>zipcode</code> (string)</li>
+    </ul>
+</div>
+
+<h2>Schemas</h2>
+<p>See <code>PoliticianBio</code> schema in the YAML for full details on all fields returned by the JSON endpoints.</p>
+</body>
+</html>

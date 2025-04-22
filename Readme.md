@@ -27,4 +27,6 @@ run it like this:
 make run
 ```
 
-TBD user docs / apidocs
+## How to use
+
+Use the [apidoc](openapi.yaml) to see the available endpoints.

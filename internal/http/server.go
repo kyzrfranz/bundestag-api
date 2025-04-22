@@ -67,6 +67,14 @@ func (a *ApiServer) AddStaticHandler(urlPath string, dirPath string) {
 	})))
 }
 
+func (a *ApiServer) AddFileHandler(path string, filePath string, mimeType string) {
+	a.mux.HandleFunc(path, func(w http.ResponseWriter, r *http.Request) {
+		// make sure it’s always the same YAML MIME‑type
+		w.Header().Set("Content-Type", mimeType)
+		http.ServeFile(w, r, filePath)
+	})
+}
+
 func (a *ApiServer) ListenAndServe() {
 
 	// Channel to listen for interrupt signals (e.g., Ctrl+C)
