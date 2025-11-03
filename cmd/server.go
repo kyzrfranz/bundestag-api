@@ -1,6 +1,10 @@
 package main
 
 import (
+	"log/slog"
+	"net/url"
+	"os"
+
 	v1 "github.com/kyzrfranz/bundestag-api/api/v1"
 	"github.com/kyzrfranz/bundestag-api/internal/data"
 	"github.com/kyzrfranz/bundestag-api/internal/http"
@@ -8,9 +12,6 @@ import (
 	"github.com/kyzrfranz/bundestag-api/internal/rest"
 	"github.com/kyzrfranz/bundestag-api/internal/upstream"
 	"github.com/kyzrfranz/bundestag-api/pkg/resources"
-	"log/slog"
-	"net/url"
-	"os"
 )
 
 var (
@@ -49,8 +50,9 @@ func main() {
 	apiServer.AddStaticHandler("/", "./static")
 
 	//proxy for zipcode search
-	cProxy := proxy.NewConstituencyProxy(constSearchProxyUrl)
+	cProxy := proxy.NewConstituencyProxy(constSearchProxyUrl, resources.NewCatalogueRepo[v1.PersonListEntry](&politicianReader))
 	apiServer.AddHandler("/constituencies/{zipcode}", cProxy.ConstituencySearch)
+	apiServer.AddHandler("/constituencies/{zipcode}/politicians", cProxy.ConstituencyPoliticianSearch)
 
 	apiServer.ListenAndServe()
 }
