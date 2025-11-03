@@ -1,4 +1,4 @@
-FROM golang:1.24 AS build
+FROM golang:1.25.2 AS build
 RUN apt update
 RUN apt install -y ca-certificates && update-ca-certificates
 WORKDIR /app
